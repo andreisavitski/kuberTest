@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1             # Определяет версию API Kubernetes, с которой совместим объект (v1 — стабильная версия для сервисов).
+    kind: Service              # Тип объекта — Service (сервис), используется для абстракции доступа к одному или нескольким контейнерам.
+    metadata: # Метаданные для объекта, такие как имя и метки.
+      name: postgres-service   # Имя сервиса — "postgres-service".
+      labels: # Метки для идентификации и выбора объектов в Kubernetes.
+        app: kubertest         # Метка, которая может быть использована для выбора этого сервиса другими объектами.
+    spec: # Спецификация сервиса.
+      type: NodePort           # Для локальных кластеров
+      selector: # Селектор для связывания сервиса с определенными подами.
+        app: kubertest          # Выбор подов с меткой app=kubertest.
+        tier: postgres          # Выбор подов с меткой tier=postgres.
+      ports: # Порты, через которые будет доступен сервис.
+        - port: 5432            # Порт на который сервис будет слушать запросы.
+          nodePort: 30000       # Внешний порт
+  - apiVersion: v1              # Версия API для PVC.
+    kind: PersistentVolumeClaim # Тип объекта — PersistentVolumeClaim (PVC), который запрашивает постоянное хранилище.
+    metadata: # Метаданные объекта.
+      name: postgres-pvc        # Имя PVC — "postgres-pvc".
+      labels: # Метки для объекта.
+        app: kubertest          # Метка app=kubertest.
+    spec: # Спецификация PVC.
+      accessModes: # Режимы доступа к хранилищу.
+        - ReadWriteOnce         # Доступ "только для чтения и записи" с ограничением на один узел.
+      resources: # Запрашиваемые ресурсы для хранилища.
+        requests: # Запрос ресурсов.
+          storage: 1Gi          # Требуется 1 ГБ постоянного хранилища.
+  - apiVersion: apps/v1         # Версия API для Deployment (apps/v1 — версия для работы с приложениями).
+    kind: Deployment            # Тип объекта — Deployment, который управляет созданием и обновлением подов.
+    metadata: # Метаданные для Deployment.
+      name: postgres-deployment # Имя deployment — "postgres-deployment".
+      labels: # Метки для объекта.
+        app: kubertest          # Метка app=kubertest.
+    spec: # Спецификация Deployment.
+      replicas: 3               # Число реплик (копий) подов.
+      selector: # Селектор, который определяет, какие поды управляются этим Deployment.
+        matchLabels: # Подбор по меткам.
+          app: kubertest        # Метка app=kubertest.
+          tier: postgres        # Метка tier=postgres.
+      strategy: # Стратегия обновления подов.
+        type: Recreate          # Стратегия "Recreate" означает, что старые поды будут удаляться перед созданием новых.
+      template: # Шаблон пода, который будет использоваться для создания подов.
+        metadata: # Метаданные для шаблона пода.
+          labels:
+            app: kubertest      # Метка app=kubertest для пода.
+            tier: postgres      # Метка tier=postgres для пода.
+        spec: # Спецификация контейнеров в поде.
+          containers: # Список контейнеров в поде.
+            - image: postgres:latest  # Используемый образ контейнера — последняя версия Postgres.
+              name: postgres          # Имя контейнера — "postgres".
+              envFrom:
+                - configMapRef:
+                    name: postgres-config
+              ports:
+                - containerPort: 5432
+              volumeMounts: # Монтирование томов в контейнер.
+                - name: postgres-persistent-storage  # Название тома, который монтируется.
+                  mountPath: /var/lib/postgres # Местоположение монтирования в контейнере.
+          volumes: # Список томов для пода.
+            - name: postgres-persistent-storage   # Имя тома.
+              persistentVolumeClaim: # Тип тома — PVC.
+                claimName: postgres-pvc # Используем PVC "postgres-pvc".

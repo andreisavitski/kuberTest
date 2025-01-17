@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubertest-config
+  labels:
+    app: kubertest
+data:
+  DB_HOST: "postgres-service.kubertest-db.svc.cluster.local"       # Хост базы данных
+  DB_PORT: "5432"                   # Порт базы данных
+  DB_USER: "postgres"               # Имя пользователя базы данных
+  DB_PASSWORD: "sa"                 # Пароль пользователя базы данных
+  DB_NAME: "test"                   # Имя базы данных
+  SERVER_PORT: "8089"               # Порт сервера для приложения

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+</head>
+<body>
+<h2>Enter Your Login</h2>
+<form id="login-form">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <button type="submit">Submit</button>
+</form>
+
+<p id="response"></p>
+
+<script>
+    // Обработчик события отправки формы
+    document.getElementById('login-form').addEventListener('submit', async function (event) {
+        event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+        const username = document.getElementById('username').value;
+
+        try {
+            const response = await fetch('/kubertest/api/v1/user/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                document.getElementById('response').textContent = `Server response: ${result.message}`;
+            } else {
+                document.getElementById('response').textContent = 'Error: Unable to submit login.';
+            }
+        } catch (error) {
+            document.getElementById('response').textContent = `Error: ${error.message}`;
+        }
+    });
+</script>
+</body>
+</html>

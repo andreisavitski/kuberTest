@@ -1,0 +1,33 @@
+services:
+
+  kuber-test:
+    image: kubertest:latest
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/test
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-sa}
+    ports:
+      - "8089:8089"
+    depends_on:
+      - postgres
+    networks:
+      - web
+
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - POSTGRES_DB=test
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-sa}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - '5433:5432'
+    volumes:
+      - ./data/db-data:/var/lib/postgresql/data/pgdata
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User List</title>
+</head>
+<body>
+<h2>User List</h2>
+
+<button id="show-users-btn">Show All Users</button>
+
+<ul id="user-list"></ul>
+
+<script>
+  document.getElementById('show-users-btn').addEventListener('click', async function () {
+    try {
+      // Запрос к бэкенду для получения списка пользователей
+      const response = await fetch('/kubertest/api/v1/user/all');
+
+      if (response.ok) {
+        const users = await response.json();
+
+        // Очищаем список перед добавлением новых элементов
+        const userList = document.getElementById('user-list');
+        userList.innerHTML = '';
+
+        // Добавляем пользователей в список
+        users.forEach(user => {
+          const listItem = document.createElement('li');
+          listItem.textContent = `ID: ${user.id}, Name: ${user.login}`;
+          userList.appendChild(listItem);
+        });
+      } else {
+        alert('Failed to fetch users');
+      }
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  });
+</script>
+</body>
+</html>
